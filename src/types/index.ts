@@ -7,11 +7,21 @@ export interface IProduct {
     title: string;
 }
 
+export interface IBasketView {
+    title: string;
+    list: string;
+    items: string;
+    total: string;
+    price: number;
+}
+
 export interface IBasket {
     products: IProduct[];
     totalPrice: number;
-    add:(product: IProduct);
-    remove:(product: IProduct);
+    totalCount: number;
+    add:(product: IProduct) => void;
+    remove:(product: IProduct) => void;
+    clear:() => void;
 }
 
 export interface IOrder {
@@ -20,51 +30,30 @@ export interface IOrder {
     email: string;
     phone: string;
     basket: IBasket;
-    save:();
+    save:() => void;
+    clear:() => void;
+}
+
+export interface ISaveOrderResponse {
+    id: string;
+    total: number;
 }
 
 export enum PaymentMethod {
-    CASH,
-    CARD,
+    card = 'Безналичный',
+    cash = 'Наличный',
 }
 
-export interface IProductUI {
-    product: IProduct;
-}
-
-export interface IProductListUI {
-    products: IProductUI[];
-}
-
-export interface IPageUI {
-    products: IProductListUI;
-    counter: number;
-}
-
-export interface IBasketUI {
-    basket: IBasket;
-}
-
-export interface IOrderForm {
+export interface IOrderFormData {
     address: string;
     paymentMethod: PaymentMethod;
 }
 
-export interface IContactsForm {
+export interface IContactsFormData {
     email: string;
     phone: string;
 }
 
-export interface ISuccessUI {
-    price: number,
-}
-
 export interface IModalData {
     content: HTMLElement;
-}
-
-export interface IModalUI {
-    open:();
-    close:();
-    render:(data: IModalUI);
 }
