@@ -1,4 +1,4 @@
-import { IOrder, IProduct, ISaveOrderResponse } from '../../types';
+import { IBasket, IOrder, IProduct, ISaveOrderResponse } from '../../types';
 import { Api, ApiListResponse } from '../base/api';
 
 export interface IProductApi {
@@ -22,14 +22,14 @@ export class ProductsApiModel extends Api implements IProductApi {
 		);
 	}
 
-	postOrder(order: IOrder): Promise<ISaveOrderResponse> {
+	postOrder(order: IOrder, basket: IBasket): Promise<ISaveOrderResponse> {
 		return this.post('/order', {
 			"payment": order.paymentMethod,
 			"email": order.email,
 			"phone": order.phone,
 			"address": order.address,
-			"total": order.basket.totalPrice,
-			"items": order.basket.products.map((product: IProduct) => product.id)
+			"total": basket.totalPrice,
+			"items": basket.products.map((product: IProduct) => product.id)
 		}).then((data: ISaveOrderResponse) => data)
 
 	}

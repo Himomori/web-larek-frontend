@@ -2,8 +2,7 @@ import './scss/styles.scss';
 
 import { ProductsApiModel } from './components/model/ProductsApiModel';
 import { API_URL, CDN_URL } from './utils/constants';
-import { IContactsFormData, IOrderFormData, IProduct, ISaveOrderResponse } from './types';
-import { AppState } from './components/model/AppState';
+import { IBasket, IContactsFormData, IOrder, IOrderFormData, IProduct, ISaveOrderResponse } from './types';
 import { EventEmitter } from './components/base/events';
 import { PageView } from './components/view/PageView';
 import { cloneTemplate, ensureElement } from './utils/utils';
@@ -13,6 +12,8 @@ import { BasketView } from './components/view/BasketView';
 import { OrderForm } from './components/view/OrderForm';
 import { Contacts } from './components/view/ContactsForm';
 import { SuccessView } from './components/view/SuccessView';
+import { BasketModel } from './components/model/BasketModel';
+import { OrderModel } from './components/model/OrderModel';
 
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
 const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
@@ -23,7 +24,10 @@ const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 
 const events = new EventEmitter();
 const api = new ProductsApiModel(CDN_URL, API_URL);
-const appState = new AppState(events);
+
+let catalog: IProduct[]= [];
+let basket: IBasket = new BasketModel(events);
+let order: IOrder = new OrderModel(events);
 
 const pageView = new PageView(events, cardCatalogTemplate);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
@@ -31,7 +35,7 @@ const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 
 // Обновление каталога при получении товаров
 events.on('catalog:updateProducts', () => {
-	pageView.updateCatalog(appState.catalog);
+	pageView.updateCatalog(catalog);
 });
 
 // Выбор карточки в каталоге
@@ -43,31 +47,32 @@ events.on('card:select', (product: IProduct) => {
 // Открытие корзины
 events.on('basket:open', () => {
 	const basketView = new BasketView(cloneTemplate(basketTemplate), events);
-	modal.render({content: basketView.render(appState.basket)});
+	modal.render({content: basketView.render(basket)});
 });
 
 // Открытие окна доставки
 events.on('order:open', () => {
-	appState.order.basket = appState.basket;
 	const order = new OrderForm(cloneTemplate(orderTemplate), events);
 	modal.render({content: order.render()});
 });
 
 // сохранение адреса и способа оплаты
 events.on('orderForm:save', (data: IOrderFormData) => { 
-	appState.order.address = data.address;
-	appState.order.paymentMethod = data.paymentMethod;
+	order.address = data.address;
+	order.paymentMethod = data.paymentMethod;
 	events.emit('contacts:open');
 })
 
 // сохранение email и phone
 events.on('contactsForm:save', (data: IContactsFormData) => { 
-	appState.order.email = data.email;
-	appState.order.phone = data.phone;
-	api.postOrder(appState.order)
+	order.email = data.email;
+	order.phone = data.phone;
+	api.postOrder(order, basket)
 	.then(function(response: ISaveOrderResponse) {
 		events.emit('success:open', response)
-		appState.order.clear();
+        // очистка заказа и корзины
+		order.clear();
+        basket.clear();
 	})
 	.catch(err => {
 		console.error(err);
@@ -93,18 +98,18 @@ events.on('close:modal', () => {
 
 // Добавление в корзину
 events.on('basket:add', (product: IProduct) => {
-	appState.basket.add(product);
+	basket.add(product);
 });
 
 // удаление из корзины
 events.on('basket:remove', (product: IProduct) => {
-	appState.basket.remove(product);
+	basket.remove(product);
 	events.emit('basket:open');
 });
 
 // Обновление счетчика корзины на странице
 events.on('basket:updateCounter', () => {
-	pageView.updateCounter(appState.basket.totalCount);
+	pageView.updateCounter(basket.totalCount);
 })
 
 
@@ -121,7 +126,8 @@ events.on('modal:close', () => {
 // получение карточек с сервера
 api.getProductList()
 	.then(function(products: IProduct[]) {
-		appState.setProducts(products);
+		catalog = products;
+		events.emit('catalog:updateProducts');
 	})
 	.catch(err => {
 		console.error(err);

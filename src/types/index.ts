@@ -29,8 +29,6 @@ export interface IOrder {
     address: string;
     email: string;
     phone: string;
-    basket: IBasket;
-    save:() => void;
     clear:() => void;
 }
 
