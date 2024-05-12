@@ -36,4 +36,8 @@ export class BasketModel implements IBasket {
 		this.totalPrice = 0;
 		this.events.emit('basket:updateCounter');
 	}
+
+	haveProduct(product: IProduct): boolean {
+		return this.products.indexOf(product) != -1;
+	}
 }

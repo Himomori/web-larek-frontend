@@ -1,5 +1,5 @@
 import { IEvents } from '../base/events';
-import { IProduct } from '../../types';
+import { ICatalog, IProduct } from '../../types';
 import { cloneTemplate, ensureElement } from '../../utils/utils';
 import { CardCatalogView } from './CardCatalogView';
 
@@ -25,9 +25,9 @@ export class PageView {
 		this._counter.textContent = String(counter);
 	}
 
-	updateCatalog(products: IProduct[]): void {
+	updateCatalog(catalog: ICatalog): void {
 		this._catalog.textContent = '';
-		products.forEach((product: IProduct) => {
+		catalog.products.forEach((product: IProduct) => {
 			let card = new CardCatalogView(cloneTemplate(this.cardCatalogTemplate), this.events);
 			this._catalog.append(card.render(product));
 		});

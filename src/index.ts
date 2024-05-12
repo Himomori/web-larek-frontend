@@ -2,7 +2,7 @@ import './scss/styles.scss';
 
 import { ProductsApiModel } from './components/model/ProductsApiModel';
 import { API_URL, CDN_URL } from './utils/constants';
-import { IBasket, IContactsFormData, IOrder, IOrderFormData, IProduct, ISaveOrderResponse } from './types';
+import { IBasket, ICatalog, IOrder, IProduct, ISaveOrderResponse } from './types';
 import { EventEmitter } from './components/base/events';
 import { PageView } from './components/view/PageView';
 import { cloneTemplate, ensureElement } from './utils/utils';
@@ -14,6 +14,7 @@ import { Contacts } from './components/view/ContactsForm';
 import { SuccessView } from './components/view/SuccessView';
 import { BasketModel } from './components/model/BasketModel';
 import { OrderModel } from './components/model/OrderModel';
+import { CatalogModel } from './components/model/CatalogModel';
 
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
 const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
@@ -25,9 +26,9 @@ const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 const events = new EventEmitter();
 const api = new ProductsApiModel(CDN_URL, API_URL);
 
-let catalog: IProduct[]= [];
-let basket: IBasket = new BasketModel(events);
-let order: IOrder = new OrderModel(events);
+const catalog: ICatalog = new CatalogModel();
+const basket: IBasket = new BasketModel(events);
+const order: IOrder = new OrderModel(events);
 
 const pageView = new PageView(events, cardCatalogTemplate);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
@@ -41,7 +42,7 @@ events.on('catalog:updateProducts', () => {
 // Выбор карточки в каталоге
 events.on('card:select', (product: IProduct) => {
 	const card = new CardPreviewView(cloneTemplate(cardPreviewTemplate), events);
-	modal.render({content: card.render(product)});
+	modal.render({content: card.render(product, basket)});
 });
 
 // Открытие корзины
@@ -52,21 +53,17 @@ events.on('basket:open', () => {
 
 // Открытие окна доставки
 events.on('order:open', () => {
-	const order = new OrderForm(cloneTemplate(orderTemplate), events);
-	modal.render({content: order.render()});
+	const orderForm = new OrderForm(cloneTemplate(orderTemplate), events);
+	modal.render({content: orderForm.render(order)});
 });
 
 // сохранение адреса и способа оплаты
-events.on('orderForm:save', (data: IOrderFormData) => { 
-	order.address = data.address;
-	order.paymentMethod = data.paymentMethod;
+events.on('orderForm:save', () => {
 	events.emit('contacts:open');
 })
 
 // сохранение email и phone
-events.on('contactsForm:save', (data: IContactsFormData) => { 
-	order.email = data.email;
-	order.phone = data.phone;
+events.on('contactsForm:save', () => {
 	api.postOrder(order, basket)
 	.then(function(response: ISaveOrderResponse) {
 		events.emit('success:open', response)
@@ -82,7 +79,7 @@ events.on('contactsForm:save', (data: IContactsFormData) => {
 // Открытие окна контактов
 events.on('contacts:open', () => {
 	const constants = new Contacts(cloneTemplate(contactsTemplate), events);
-	modal.render({content: constants.render()});
+	modal.render({content: constants.render(order)});
 });
 
 // открытие окна успешной покупки
@@ -104,7 +101,6 @@ events.on('basket:add', (product: IProduct) => {
 // удаление из корзины
 events.on('basket:remove', (product: IProduct) => {
 	basket.remove(product);
-	events.emit('basket:open');
 });
 
 // Обновление счетчика корзины на странице
@@ -126,7 +122,7 @@ events.on('modal:close', () => {
 // получение карточек с сервера
 api.getProductList()
 	.then(function(products: IProduct[]) {
-		catalog = products;
+		catalog.updateProducts(products);
 		events.emit('catalog:updateProducts');
 	})
 	.catch(err => {

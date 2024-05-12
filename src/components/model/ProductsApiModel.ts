@@ -29,8 +29,7 @@ export class ProductsApiModel extends Api implements IProductApi {
 			"phone": order.phone,
 			"address": order.address,
 			"total": basket.totalPrice,
-			"items": basket.products.map((product: IProduct) => product.id)
+			"items": basket.products.filter((product: IProduct) => product.price !== null).map((product: IProduct) => product.id)
 		}).then((data: ISaveOrderResponse) => data)
-
 	}
 }

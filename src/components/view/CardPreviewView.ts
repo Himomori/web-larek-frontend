@@ -1,8 +1,9 @@
-import { IProduct } from '../../types';
+import { IBasket, IProduct } from '../../types';
 import { IEvents } from '../base/events';
 import { ensureElement } from '../../utils/utils';
+import { BaseCardView } from './BaseCardView';
 
-export class CardPreviewView {
+export class CardPreviewView extends BaseCardView {
 	protected _image: HTMLImageElement;
 	protected _category: HTMLSpanElement;
 	protected _title: HTMLHeadingElement;
@@ -12,6 +13,7 @@ export class CardPreviewView {
 	protected _selectedProduct: IProduct;
 
 	constructor(readonly template: HTMLElement, protected events: IEvents) {
+		super();
 		this._description = ensureElement<HTMLParagraphElement>('.card__text', template);
 		this._button = ensureElement<HTMLButtonElement>('.card__button', template);
 		this._category = ensureElement<HTMLSpanElement>('.card__category', template);
@@ -25,9 +27,10 @@ export class CardPreviewView {
 
 	}
 
-	render(data: IProduct): HTMLElement {
+	render(data: IProduct, basket: IBasket): HTMLElement {
 		this._description.textContent = data.description;
 		this._category.textContent = data.category;
+		this._category.style.background = this.getCategoryColor(data.category)
 		this._image.src = data.image;
 		this._title.textContent = data.title;
 		this._price.textContent = String(data.price);
@@ -35,6 +38,12 @@ export class CardPreviewView {
 
 		if (!data.price) {
 			this._price.textContent = 'Бесценно';
+		}
+
+		if (basket.haveProduct(data)) {
+			this._button.setAttribute('disabled', 'disabled');
+		} else {
+			this._button.removeAttribute('disabled');
 		}
 
 		return this.template;

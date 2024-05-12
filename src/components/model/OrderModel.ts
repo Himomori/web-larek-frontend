@@ -15,6 +15,7 @@ export class OrderModel implements IOrder {
         this.address = '';
         this.email = '';
         this.phone = '';
+        this.paymentMethod = null;
     }
 }
 

@@ -7,12 +7,9 @@ export interface IProduct {
     title: string;
 }
 
-export interface IBasketView {
-    title: string;
-    list: string;
-    items: string;
-    total: string;
-    price: number;
+export interface ICatalog {
+    products: IProduct[];
+    updateProducts: (products: IProduct[]) => void;
 }
 
 export interface IBasket {
@@ -20,6 +17,7 @@ export interface IBasket {
     totalPrice: number;
     totalCount: number;
     add:(product: IProduct) => void;
+    haveProduct: (product: IProduct) => boolean;
     remove:(product: IProduct) => void;
     clear:() => void;
 }
@@ -40,16 +38,6 @@ export interface ISaveOrderResponse {
 export enum PaymentMethod {
     card = 'Безналичный',
     cash = 'Наличный',
-}
-
-export interface IOrderFormData {
-    address: string;
-    paymentMethod: PaymentMethod;
-}
-
-export interface IContactsFormData {
-    email: string;
-    phone: string;
 }
 
 export interface IModalData {

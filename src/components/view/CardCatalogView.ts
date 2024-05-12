@@ -1,8 +1,9 @@
 import { IProduct } from '../../types';
 import { IEvents } from '../base/events';
 import { ensureElement } from '../../utils/utils';
+import { BaseCardView } from './BaseCardView';
 
-export class CardCatalogView {
+export class CardCatalogView extends BaseCardView {
 	protected _image: HTMLImageElement;
 	protected _category: HTMLSpanElement;
 	protected _title: HTMLHeadingElement;
@@ -10,6 +11,7 @@ export class CardCatalogView {
 	protected _selectedProduct: IProduct;
 
 	constructor(readonly template: HTMLElement, protected events: IEvents) {
+		super();
 		this._image = ensureElement<HTMLImageElement>('.card__image', template);
 		this._category = ensureElement<HTMLSpanElement>('.card__category', template);
 		this._title = ensureElement<HTMLHeadingElement>('.card__title', template);
@@ -23,6 +25,7 @@ export class CardCatalogView {
 		this._title.textContent = data.title;
 		this._price.textContent = String(data.price);
 		this._category.textContent = data.category;
+		this._category.style.background = this.getCategoryColor(data.category)
 		this._selectedProduct = data;
 
 		if (!data.price) {
