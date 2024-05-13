@@ -2,7 +2,7 @@ import './scss/styles.scss';
 
 import { ProductsApiModel } from './components/model/ProductsApiModel';
 import { API_URL, CDN_URL } from './utils/constants';
-import { IBasket, ICatalog, IOrder, IProduct, ISaveOrderResponse } from './types';
+import { IBasket, ICatalog, IOrder, IProduct, ISaveOrderResponse, PaymentMethod } from './types';
 import { EventEmitter } from './components/base/events';
 import { PageView } from './components/view/PageView';
 import { cloneTemplate, ensureElement } from './utils/utils';
@@ -58,12 +58,25 @@ events.on('order:open', () => {
 });
 
 // сохранение адреса и способа оплаты
-events.on('orderForm:save', () => {
+events.on('orderForm:save', (form: HTMLElement) => {
+	const addressInput: HTMLInputElement = form.querySelector('input[name="address"]');
+	const cashButton: HTMLButtonElement = form.querySelector('button[name="cash"]');
+	const cardButton: HTMLButtonElement = form.querySelector('button[name="card"]');
+	order.address = addressInput.value;
+	if (cashButton.classList.contains("button_alt-active")) {
+		order.paymentMethod = PaymentMethod.cash;
+	} else if (cardButton.classList.contains("button_alt-active")) {
+		order.paymentMethod = PaymentMethod.card;
+	}
 	events.emit('contacts:open');
 })
 
 // сохранение email и phone
-events.on('contactsForm:save', () => {
+events.on('contactsForm:save', (form: HTMLElement) => {
+	const emailInput: HTMLInputElement = form.querySelector('input[name="email"]');
+	const phoneInput: HTMLInputElement = form.querySelector('input[name="phone"]');
+	order.email = emailInput.value;
+	order.phone = phoneInput.value;
 	api.postOrder(order, basket)
 	.then(function(response: ISaveOrderResponse) {
 		events.emit('success:open', response)
