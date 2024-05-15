@@ -2,7 +2,16 @@ import './scss/styles.scss';
 
 import { ProductsApiModel } from './components/model/ProductsApiModel';
 import { API_URL, CDN_URL } from './utils/constants';
-import { IBasket, ICatalog, IOrder, IProduct, ISaveOrderResponse, PaymentMethod } from './types';
+import {
+	IBasket,
+	ICatalog,
+	IFormInputChangeData,
+	IFormPaymentMethodChangeData,
+	IOrder,
+	IProduct,
+	ISaveOrderResponse,
+	PaymentMethod,
+} from './types';
 import { EventEmitter } from './components/base/events';
 import { PageView } from './components/view/PageView';
 import { cloneTemplate, ensureElement } from './utils/utils';
@@ -57,26 +66,33 @@ events.on('order:open', () => {
 	modal.render({content: orderForm.render(order)});
 });
 
-// сохранение адреса и способа оплаты
-events.on('orderForm:save', (form: HTMLElement) => {
-	const addressInput: HTMLInputElement = form.querySelector('input[name="address"]');
-	const cashButton: HTMLButtonElement = form.querySelector('button[name="cash"]');
-	const cardButton: HTMLButtonElement = form.querySelector('button[name="card"]');
-	order.address = addressInput.value;
-	if (cashButton.classList.contains("button_alt-active")) {
-		order.paymentMethod = PaymentMethod.cash;
-	} else if (cardButton.classList.contains("button_alt-active")) {
-		order.paymentMethod = PaymentMethod.card;
-	}
+// Обновление адреса у заказа
+events.on('orderForm:addressChanged', (data: IFormInputChangeData) => {
+	order.address = data.value;
+})
+
+// Обновление способа оплаты у заказа
+events.on('orderForm:paymentMethodChanged', (data: IFormPaymentMethodChangeData) => {
+	order.paymentMethod = data.value;
+})
+
+// Обновление почты у заказа
+events.on('contactsForm:emailChanged', (data: IFormInputChangeData) => {
+	order.email = data.value;
+})
+
+// Обновление телефона у заказа
+events.on('contactsForm:phoneChanged', (data: IFormInputChangeData) => {
+	order.phone = data.value;
+})
+
+// Отрытие формы контактов
+events.on('orderForm:save', () => {
 	events.emit('contacts:open');
 })
 
-// сохранение email и phone
-events.on('contactsForm:save', (form: HTMLElement) => {
-	const emailInput: HTMLInputElement = form.querySelector('input[name="email"]');
-	const phoneInput: HTMLInputElement = form.querySelector('input[name="phone"]');
-	order.email = emailInput.value;
-	order.phone = phoneInput.value;
+// Отправка заказа в апи
+events.on('contactsForm:save', () => {
 	api.postOrder(order, basket)
 	.then(function(response: ISaveOrderResponse) {
 		events.emit('success:open', response)

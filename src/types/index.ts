@@ -43,3 +43,11 @@ export enum PaymentMethod {
 export interface IModalData {
     content: HTMLElement;
 }
+
+export interface IFormInputChangeData {
+    value: string;
+}
+
+export interface IFormPaymentMethodChangeData {
+    value: PaymentMethod;
+}

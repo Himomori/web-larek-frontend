@@ -13,6 +13,8 @@ export class OrderForm {
 
         this.inputAddress = ensureElement<HTMLInputElement>('.form__input', template);
         this.inputAddress.addEventListener('input', (e: Event) => {
+            const target = e.target as HTMLInputElement;
+            events.emit('orderForm:addressChanged', { value: target.value })
             this.validate();
         });
 
@@ -22,6 +24,7 @@ export class OrderForm {
         this.card_button.addEventListener('click', () => {
             this.card_button.classList.add('button_alt-active');
             this.cash_button.classList.remove('button_alt-active');
+            events.emit('orderForm:paymentMethodChanged', { value: PaymentMethod.card })
             this.validate();
         });
 
@@ -30,12 +33,13 @@ export class OrderForm {
         this.cash_button.addEventListener('click', () => {
             this.cash_button.classList.add('button_alt-active');
             this.card_button.classList.remove('button_alt-active');
+            events.emit('orderForm:paymentMethodChanged', { value: PaymentMethod.cash })
             this.validate();
         });
 
         this.submit_button = ensureElement<HTMLButtonElement>('.order__button', template);
         this.submit_button.addEventListener('click', () => {
-            this.events.emit('orderForm:save', template)
+            this.events.emit('orderForm:save')
         });
 
         template.addEventListener('submit', (e) => e.preventDefault())
@@ -60,7 +64,7 @@ export class OrderForm {
     }
 
     render(order: IOrder): HTMLElement {
-        if (this.inputAddress.value) {
+        if (order.address) {
             this.inputAddress.value = order.address;
             this.validate();
         }

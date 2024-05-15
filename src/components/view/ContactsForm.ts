@@ -12,6 +12,8 @@ export class Contacts {
 
         this.inputEmail = ensureElement<HTMLInputElement>('.form__input[name="email"]', template);
         this.inputEmail.addEventListener('input', (e: Event) => {
+            const target = e.target as HTMLInputElement;
+            events.emit('contactsForm:emailChanged', { value: target.value })
             this.validate();
         })
 
@@ -19,6 +21,8 @@ export class Contacts {
 
         this.inputPhone = ensureElement<HTMLInputElement>('.form__input[name="phone"]', template);
         this.inputPhone.addEventListener('input', (e: Event) => {
+            const target = e.target as HTMLInputElement;
+            events.emit('contactsForm:phoneChanged', { value: target.value })
             this.validate();
         })
 
@@ -26,7 +30,7 @@ export class Contacts {
 
         this.submit_button = ensureElement<HTMLButtonElement>('button[type=submit]', template);
         this.submit_button.addEventListener('click', () => {
-            this.events.emit('contactsForm:save', template)
+            this.events.emit('contactsForm:save')
         });
 
         template.addEventListener('submit', (e) => e.preventDefault())

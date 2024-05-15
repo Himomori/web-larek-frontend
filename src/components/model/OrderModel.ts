@@ -1,4 +1,4 @@
-import { IOrder, PaymentMethod } from "../../types";
+import { IFormInputChangeData, IOrder, PaymentMethod } from '../../types';
 import { IEvents } from "../base/events";
 
 export class OrderModel implements IOrder {
@@ -8,6 +8,10 @@ export class OrderModel implements IOrder {
     phone: string;
 
     constructor(protected events: IEvents) {
+
+    }
+
+    updateField(data: IFormInputChangeData) {
 
     }
 
